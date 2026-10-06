@@ -73,6 +73,21 @@ jobs:
             --add-data "src/segyviewlib/LICENSE${{ runner.os == 'Windows' && ';' || ':' }}segyviewlib" \
             --hidden-import segyviewlib \
             applications/segyviewer
+      - name: Smoke test the frozen app (no file, then with file)
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          EXE=dist/segyviewer/segyviewer
+          [ "$RUNNER_OS" = "Windows" ] && EXE=dist/segyviewer/segyviewer.exe
+          for case in nofile file; do
+            rm -f smoke-$case.txt
+            if [ $case = file ]; then ARGS="tests/testdata/small.sgy"; else ARGS=""; fi
+            "$EXE" $ARGS --smoke-test smoke-$case.txt &
+            for i in $(seq 1 60); do [ -f smoke-$case.txt ] && break; sleep 1; done
+            echo "== $case: $(cat smoke-$case.txt 2>/dev/null || echo MISSING)"
+            grep -q OK smoke-$case.txt
+          done
       - name: Archive
         shell: bash
         run: |

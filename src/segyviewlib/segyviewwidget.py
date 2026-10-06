@@ -152,8 +152,8 @@ class SegyViewWidget(QWidget):
 
         fig.layout_figure().savefig(output_file)
 
-    def set_source_filename(self, filename):
-        self._slice_data_source.set_source_filename(filename)
+    def set_source_filename(self, filename, **segyioargs):
+        self._slice_data_source.set_source_filename(filename, **segyioargs)
 
     def set_default_layout(self):
         # default slice view layout depends on the file size

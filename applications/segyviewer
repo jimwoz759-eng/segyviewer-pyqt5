@@ -1,12 +1,27 @@
 #!/usr/bin/env python
+import os
 import sys
+import tempfile
+import traceback
 import argparse
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QApplication, QToolButton, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QToolButton, QFileDialog, QMessageBox
 
 from segyviewlib import resource_icon, SegyViewWidget
+
+
+def _report_exception(exc_type, exc_value, exc_tb):
+    text = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    try:
+        with open(os.path.join(tempfile.gettempdir(), "segyviewer-error.log"), "a") as f:
+            f.write(text + "\n")
+    except Exception:
+        pass
+    sys.stderr.write(text)
+    if QApplication.instance() is not None and os.environ.get("QT_QPA_PLATFORM") != "offscreen":
+        QMessageBox.critical(None, "SEG-Y Viewer error", text)
 
 
 class SegyViewer(QMainWindow):
@@ -44,30 +59,48 @@ class SegyViewer(QMainWindow):
         input_file = str(input_file).strip()
 
         if input_file:
-            self._segy_view_widget.set_source_filename(input_file, **self.segyioargs)
+            try:
+                self._segy_view_widget.set_source_filename(input_file, **self.segyioargs)
+            except Exception as e:
+                QMessageBox.warning(self, "Could not open file", "%s\n\n%s" % (input_file, e))
+                return
             self._segy_view_widget.set_default_layout()
             self.setWindowTitle(input_file)
 
 
-def run(filename, il, xl):
+def run(filename, il, xl, smoke_test=None):
     segy_viewer = SegyViewer(filename, il, xl)
     segy_viewer.show()
     segy_viewer.raise_()
-    sys.exit(q_app.exec_())
+    if smoke_test:
+        # Used by CI to verify that the (frozen) application starts and renders.
+        q_app.processEvents()
+        segy_viewer._segy_view_widget.grab()
+        with open(smoke_test, "w") as f:
+            f.write("OK\n")
+        return 0
+    return q_app.exec_()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Simple SEG-Y visualization')
-    parser.add_argument('filename',   type = str, help = 'File to open')
+    parser.add_argument('filename',   type = str, nargs = '?', default = None,
+                                      help = 'File to open (optional; use the folder button otherwise)')
     parser.add_argument('-i', '--il', type = int,
                                       help = 'inline identifer')
     parser.add_argument('-x', '--xl', type = int,
                                       help = 'crossline identifer')
+    parser.add_argument('--smoke-test', metavar = 'OUTFILE', default = None,
+                                      help = argparse.SUPPRESS)
 
     args = parser.parse_args()
 
-    q_app = QApplication(sys.argv)
+    sys.excepthook = _report_exception
+    q_app = QApplication(sys.argv[:1])
 
-    # import cProfile
-    # cProfile.run('run(%s)' % filename, filename=None, sort='cumulative')
-    run(args.filename, args.il, args.xl)
+    try:
+        code = run(args.filename, args.il, args.xl, args.smoke_test)
+    except Exception:
+        _report_exception(*sys.exc_info())
+        code = 1
+    sys.exit(code)

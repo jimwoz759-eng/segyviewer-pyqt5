@@ -12,9 +12,10 @@ class EmptyDataSource(object):
         self._data = np.zeros((2, 2), dtype=np.single)
         self._data[0, 0] = -1.0
         self._data[1, 1] = 1.0
-        self._xlines = [0, 1]
-        self._ilines = [0, 1]
-        self._samples = []  # changed to allow dims() calculate len(samples)
+        # numpy arrays (not lists): the UI calls .tolist() on these
+        self._xlines = np.array([0, 1])
+        self._ilines = np.array([0, 1])
+        self._samples = np.array([0, 1])
 
     @property
     def ilines(self):
