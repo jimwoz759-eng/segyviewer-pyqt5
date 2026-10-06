@@ -2,8 +2,9 @@
 import sys
 import argparse
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMainWindow, QApplication, QToolButton, QFileDialog, QIcon
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMainWindow, QApplication, QToolButton, QFileDialog
 
 from segyviewlib import resource_icon, SegyViewWidget
 
@@ -38,7 +39,8 @@ class SegyViewer(QMainWindow):
         toolbar.insertSeparator(first_action)
 
     def _open_file(self):
-        input_file = QFileDialog.getOpenFileName(self, "Open SEG-Y file", "", "Segy File  (*.seg *.segy *.sgy)")
+        # PyQt5 returns a (filename, selected_filter) tuple
+        input_file, _ = QFileDialog.getOpenFileName(self, "Open SEG-Y file", "", "Segy File  (*.seg *.segy *.sgy)")
         input_file = str(input_file).strip()
 
         if input_file:

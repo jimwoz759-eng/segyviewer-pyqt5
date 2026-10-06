@@ -1,7 +1,7 @@
 import sys
-from PyQt4.QtGui import QCheckBox, QWidget
-from PyQt4.QtGui import QHBoxLayout, QDoubleSpinBox
-from PyQt4.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QCheckBox, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QDoubleSpinBox
+from PyQt5.QtCore import pyqtSignal, QObject
 
 
 class SampleScaleController(QObject):

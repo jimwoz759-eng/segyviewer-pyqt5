@@ -2,8 +2,9 @@ from __future__ import print_function
 
 from contextlib import contextmanager
 
-from PyQt4.QtGui import QToolButton, QToolBar, QVBoxLayout, QWidget, QTabWidget
-from PyQt4.QtCore import QModelIndex
+from PyQt5.QtWidgets import QToolButton, QVBoxLayout, QWidget, QTabWidget
+from PyQt5.QtWidgets import QToolBar
+from PyQt5.QtCore import QModelIndex
 
 from segyviewlib import LayoutCombo, SettingsWindow, SliceViewContext
 from segyviewlib import SliceDataSource, SliceModel, SliceDirection as SD, resource_icon
@@ -212,7 +213,10 @@ class SegyTabWidget(QWidget):
         return slice_data_source, slice_models
 
     def __del__(self):
-        self.layout_combo.layout_changed.disconnect(self._plot_layout_changed)
+        try:
+            self.layout_combo.layout_changed.disconnect(self._plot_layout_changed)
+        except (RuntimeError, AttributeError, TypeError):
+            pass  # C++ object already deleted or signal was never connected
 
     def _create_toolbar(self):
         toolbar = QToolBar()

@@ -1,7 +1,8 @@
 from __future__ import division
-from PyQt4.QtGui import QCheckBox, QWidget, QFormLayout, QComboBox, QLabel
-from PyQt4.QtGui import QPushButton, QHBoxLayout, QVBoxLayout, QTreeWidget, QTreeWidgetItem
-from PyQt4.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QCheckBox, QWidget, QComboBox, QLabel
+from PyQt5.QtWidgets import QFormLayout
+from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 from segyviewlib import SliceDirection, SampleScaleController, IndexController, PlotExportSettingsWidget
 
@@ -178,7 +179,7 @@ class SettingsWindow(QWidget):
         else:
             l.addSpacing(25)
 
-        l.addStretch(0.5)
+        l.addStretch(1)
         if widget is not None:
             widget.setMinimumWidth(180)
             widget.setMaximumWidth(180)
@@ -203,7 +204,7 @@ class SettingsWindow(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
     def _build_tree(self, tree_wdgt, tree_def, root):
-        parent, children = tree_def.items()[0]
+        parent, children = next(iter(tree_def.items()))  # Python 3: dict_items is not subscriptable
 
         # empty label /parent is a special case: either inline with the previous, or skip
         if parent == "":

@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-requires = map(str.rstrip, open('requirements.txt').readlines())
+requires = [l.strip() for l in open('requirements.txt') if l.strip()]
 
 # Version number, based of the git tag, is written to version.py in setup(name=segyviewlib..).
 # The update of version.py makes the commit dirty, which affects use_scm_version.
@@ -30,7 +30,7 @@ setup(name='segyviewer',
           'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
           'Natural Language :: English',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
           'Topic :: Scientific/Engineering',
           'Topic :: Scientific/Engineering :: Physics',
           'Topic :: Software Development :: Libraries',
@@ -80,7 +80,7 @@ setup(name='segyviewlib',
           'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
           'Natural Language :: English',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
           'Topic :: Scientific/Engineering',
           'Topic :: Scientific/Engineering :: Physics',
           'Topic :: Software Development :: Libraries',

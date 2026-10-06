@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.9', '3.11', '3.12']
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Qt runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libdbus-1-3 libfontconfig1
+      - run: pip install -r requirements.txt pytest setuptools_scm
+      - run: PYTHONPATH=src python -m pytest -q tests
+
+  build-dist:
+    name: Build wheel + sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install build setuptools_scm wheel
+      - run: python setup.py bdist_wheel sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/*
+
+  build-app:
+    name: Standalone app (${{ matrix.os }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt pyinstaller setuptools_scm
+      - name: Build with PyInstaller
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --name segyviewer \
+            --paths src \
+            --add-data "src/segyviewlib/resources${{ runner.os == 'Windows' && ';' || ':' }}segyviewlib/resources" \
+            --add-data "src/segyviewlib/LICENSE${{ runner.os == 'Windows' && ';' || ':' }}segyviewlib" \
+            --hidden-import segyviewlib \
+            applications/segyviewer
+      - name: Archive
+        shell: bash
+        run: |
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then 7z a ../segyviewer-${{ runner.os }}.zip segyviewer; else tar czf ../segyviewer-${{ runner.os }}.tar.gz segyviewer; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: segyviewer-${{ runner.os }}
+          path: segyviewer-${{ runner.os }}.*

@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QFileDialog, QToolButton, QToolBar, QVBoxLayout, QWidget, QWidgetAction
+from PyQt5.QtWidgets import QFileDialog, QToolButton, QVBoxLayout, QWidget, QToolBar, QWidgetAction
 
 from segyviewlib import ColormapCombo, LayoutCombo, SettingsWindow, SliceViewContext, HelpWindow
 from segyviewlib import SliceDataSource, SliceModel, SliceDirection as SD, SliceViewWidget, resource_icon
@@ -68,7 +68,10 @@ class SegyViewWidget(QWidget):
     # custom signal slots are required to be manually disconnected
     # https://stackoverflow.com/questions/15600014/pyqt-disconnect-slots-new-style
     def __del__(self):
-        self._layout_combo.layout_changed.disconnect(self._slice_view_widget.set_plot_layout)
+        try:
+            self._layout_combo.layout_changed.disconnect(self._slice_view_widget.set_plot_layout)
+        except (RuntimeError, AttributeError, TypeError):
+            pass  # C++ object already deleted or __init__ never completed
 
     def _create_toolbar(self, color_maps):
         toolbar = QToolBar()
@@ -132,7 +135,7 @@ class SegyViewWidget(QWidget):
 
     def _save_figure(self):
         formats = "Portable Network Graphic (*.png);;Adobe Acrobat (*.pdf);;Scalable Vector Graphics (*.svg)"
-        output_file = QFileDialog.getSaveFileName(self, "Save as image", "untitled.png", formats)
+        output_file, _ = QFileDialog.getSaveFileName(self, "Save as image", "untitled.png", formats)
 
         output_file = str(output_file).strip()
 

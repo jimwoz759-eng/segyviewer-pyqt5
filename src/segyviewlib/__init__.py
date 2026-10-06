@@ -11,7 +11,7 @@ def resource_icon_path(name):
 def resource_icon(name):
     """Load an image as an icon"""
     # print("Icon used: %s" % name)
-    from PyQt4.QtGui import QIcon
+    from PyQt5.QtGui import QIcon
     return QIcon(resource_icon_path(name))
 
 def resource_html_path(name):
@@ -19,7 +19,7 @@ def resource_html_path(name):
 
 def resource_html(name):
     """Load a local HTML resource as an URL"""
-    from PyQt4.QtCore import QUrl
+    from PyQt5.QtCore import QUrl
     return QUrl.fromLocalFile(resource_html_path(name))
 
 

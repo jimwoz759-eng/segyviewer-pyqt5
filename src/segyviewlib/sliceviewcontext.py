@@ -1,5 +1,5 @@
-from PyQt4.QtCore import QObject
-from PyQt4.QtCore import pyqtSignal
+from PyQt5.QtCore import QObject
+from PyQt5.QtCore import pyqtSignal
 
 from segyviewlib import SliceModel, SliceDataSource, SliceDirection
 
